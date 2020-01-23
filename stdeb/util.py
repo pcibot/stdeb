@@ -109,6 +109,9 @@ stdeb_cmdline_opts = [
      'Allow installing into /some/random/virtualenv-path'),
     ('sign-results',None,
      'Use gpg to sign the resulting .dsc and .changes file'),
+    ('ignore-source-changes',None,
+     'Ignore all changes on source when building source package (add -i.* '
+     'option to dpkg-source'),
     ]
 
 # old entries from stdeb.cfg:
@@ -181,6 +184,7 @@ stdeb_cmd_bool_opts = [
     'force-x-python3-version',
     'allow-virtualenv-install-location',
     'sign-results',
+    'ignore-source-changes',
     ]
 
 class NotGiven: pass
@@ -1226,6 +1230,7 @@ def build_dsc(debinfo,
               remove_expanded_source_dir=0,
               debian_dir_only=False,
               sign_dsc=False,
+              ignore_source_changes=False,
               ):
     """make debian source package"""
     #    A. Find new dirname and delete any pre-existing contents
@@ -1434,9 +1439,16 @@ def build_dsc(debinfo,
     #    http://www.debian.org/doc/developers-reference/ch-best-pkging-practices.en.html
 
     if sign_dsc:
-        args = ()
+        sign_dsc_args = ()
     else:
-        args = ('-uc','-us')
+        sign_dsc_args = ('-uc','-us')
+
+    if ignore_source_changes:
+        ignore_source_changes_args = ('-i.*',)
+    else:
+        ignore_source_changes_args = ()
+
+    args = sign_dsc_args + ignore_source_changes_args
 
     dpkg_buildpackage('-S','-sa',*args,cwd=fullpath_repackaged_dirname)
 
